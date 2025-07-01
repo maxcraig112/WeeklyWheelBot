@@ -11,7 +11,7 @@ type GuildData struct {
 	GuildID        string                   `firestore:"guildID"`
 	Guesses        map[string]int           `firestore:"guesses"`
 	SpunNumbers    []SpunNumber             `firestore:"rolledNumbers"`
-	LastNumberSpun SpunNumber               `firestore:"latsNumberSpun"`
+	LastNumberSpun SpunNumber               `firestore:"lastNumberSpun"`
 	CollectionRef  *firestore.CollectionRef `firestore:"-"`
 }
 
@@ -51,7 +51,7 @@ func (g *GuildData) AddSpunNumber(ctx context.Context, number int) error {
 			Value: g.SpunNumbers,
 		},
 		{
-			Path:  "latsNumberSpun",
+			Path:  "lastNumberSpun",
 			Value: g.LastNumberSpun,
 		},
 	})
@@ -89,7 +89,7 @@ func (g *GuildData) BulkAddSpunNumbers(ctx context.Context, numbers []int) error
 			Value: g.SpunNumbers,
 		},
 		{
-			Path:  "latsNumberSpun",
+			Path:  "lastNumberSpun",
 			Value: g.LastNumberSpun,
 		},
 	})
