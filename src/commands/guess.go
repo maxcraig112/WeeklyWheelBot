@@ -74,6 +74,7 @@ var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -100,6 +101,7 @@ var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 							},
 						},
 					},
+					Flags: discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -111,6 +113,7 @@ var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -150,6 +153,7 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -161,6 +165,7 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -169,6 +174,7 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: fmt.Sprintf("Guess for %s has been overridden to %d.", userID, guess),
+				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
 	},
@@ -177,6 +183,7 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Your guess was not changed.",
+				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
 	},

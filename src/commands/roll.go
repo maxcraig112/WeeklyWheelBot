@@ -7,7 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"sort"
+
 	"github.com/bwmarrin/discordgo"
+	"github.com/gotidy/ptr"
 	"github.com/samber/lo"
 )
 
@@ -48,6 +51,10 @@ var RollCommands = []discordgo.ApplicationCommand{
 			},
 		},
 	},
+}
+
+var loserGifs = []string{
+	"https://i.imgur.com/ztfqRxX.gif",
 }
 
 var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
@@ -94,9 +101,6 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				// Note: this isn't documented, but you can use that if you want to.
-				// This flag just allows you to create messages visible only for the caller of the command
-				// (user who triggered the command)
 				Flags:   discordgo.MessageFlagsEphemeral,
 				Content: "Now Rolling!",
 			},
@@ -117,24 +121,99 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 
 		// 3. Reveal the number and result
 		winners := allGuesses[randomNumber]
-		var resultMsg string
 		if len(winners) > 0 {
-			resultMsg = fmt.Sprintf("🎉 The number is **%d**! Congratulations to: %s", randomNumber, strings.Join(winners, ", "))
+			embed := &discordgo.MessageEmbed{
+				Image: &discordgo.MessageEmbedImage{
+					URL: "https://i.imgur.com/XPoG75D.gif",
+				},
+			}
+			s.FollowupMessageEdit(i.Interaction, resp.ID, &discordgo.WebhookEdit{
+				Content: ptr.Of(fmt.Sprintf("🎉 The number is **%d**! HOLY SHIT YOU DID IT %s", randomNumber, strings.Join(winners, " and "))),
+				Embeds:  &[]*discordgo.MessageEmbed{embed},
+			})
 		} else {
-			resultMsg = fmt.Sprintf("The number is **%d**! Better luck next time!", randomNumber)
+			gifUrl := loserGifs[rand.Intn(len(loserGifs))]
+			embed := &discordgo.MessageEmbed{
+				Image: &discordgo.MessageEmbedImage{
+					URL: gifUrl,
+				},
+			}
+			s.FollowupMessageEdit(i.Interaction, resp.ID, &discordgo.WebhookEdit{
+				Content: ptr.Of(fmt.Sprintf("The number is **%d**! Better luck next time!", randomNumber)),
+				Embeds:  &[]*discordgo.MessageEmbed{embed},
+			})
 		}
 
 		// 4. Edit the original message
-		s.FollowupMessageEdit(i.Interaction, resp.ID, &discordgo.WebhookEdit{
-			Content: &resultMsg,
-		})
 
 		guildData.AddRolledNumber(ctx, randomNumber)
 	},
 	lastRollCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		//get guild data
+		guildID := i.GuildID
+
+		guildStore := guild.NewGuildStore(Clients.Firestore)
+		guildData, err := guildStore.CreateOrGetGuildDocument(ctx, guildID)
+		if err != nil {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+				},
+			})
+			return
+		}
+
+		lastRoll := guildData.LastNumberRolled
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   discordgo.MessageFlagsEphemeral,
+				Content: fmt.Sprintf("The last number rolled was %d on %s", lastRoll.Number, lastRoll.DateRolled.Format("02-01-2006")),
+			},
+		})
+
 	},
 	allRolledCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		//get guild data
+		guildID := i.GuildID
+
+		guildStore := guild.NewGuildStore(Clients.Firestore)
+		guildData, err := guildStore.CreateOrGetGuildDocument(ctx, guildID)
+		if err != nil {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+				},
+			})
+			return
+		}
+
+		numbers := lo.Map(guildData.RolledNumbers, func(data guild.RolledNumber, _ int) int { return data.Number })
+		sort.Ints(numbers)
+		numberStrings := lo.Map(numbers, func(n int, _ int) string { return fmt.Sprintf("%d", n) })
+
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Here are a list of all the rolls that have been made in this server!",
+				Files: []*discordgo.File{
+					{
+						ContentType: "text/plain",
+						Name:        "rolls.txt",
+						Reader:      strings.NewReader(strings.Join(numberStrings, "\n")),
+					},
+				},
+			},
+		})
 	},
 	scheduleRollCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Not yet implemented :(",
+			},
+		})
 	},
 }
