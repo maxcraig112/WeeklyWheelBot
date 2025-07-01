@@ -8,10 +8,16 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/gotidy/ptr"
+	"github.com/samber/lo"
 )
 
+var whatsMyGuessCommandName = "whatsmyguess"
 var guessCommandName = "guess"
 var GuessCommands = []discordgo.ApplicationCommand{
+	{
+		Name:        whatsMyGuessCommandName,
+		Description: "What is your current guess in this server",
+	},
 	{
 		Name:        guessCommandName,
 		Description: "Register your guess between 1 and 1000",
@@ -36,8 +42,39 @@ var GuessCommands = []discordgo.ApplicationCommand{
 }
 
 var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+	whatsMyGuessCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		guildID := i.GuildID
+		guildStore := guild.NewGuildStore(Clients.Firestore)
+		guildData, err := guildStore.CreateOrGetGuildDocument(ctx, guildID)
+		if err != nil {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
+				},
+			})
+			return
+		}
+		if currentGuess, ok := guildData.Guesses[getMentionFromUserID(i.Member.User.ID)]; ok {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Your current guess is %d!", currentGuess),
+				},
+			})
+		} else {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "You haven't guessed a number yet in this server, run /guess to make one",
+				},
+			})
+		}
+	},
 	guessCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		guildID := i.GuildID
+		guildStore := guild.NewGuildStore(Clients.Firestore)
+		guildData, err := guildStore.CreateOrGetGuildDocument(ctx, guildID)
 		// Access options in the order provided by the user.
 		options := i.ApplicationCommandData().Options
 
@@ -49,26 +86,69 @@ var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 
 		var userID string
 		var guess int
-		// This example stores the provided arguments in an []interface{}
-		// which will be used to format the bots response
 		margs := make([]interface{}, 0, len(options))
 		msgformat := "You just made a guess, the values you entered are "
 
 		// if the user provided a guesses as a mention then we will use that
 		if option, ok := optionMap["guesser"]; ok {
-			userID = string(option.StringValue())
+			// validate that it is of the form <@userID>
+			mention := option.StringValue()
+			if strings.HasPrefix(mention, "<@") && strings.HasSuffix(mention, ">") {
+				userID = mention
+			} else {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "Invalid guesser value, it has to be a user mention",
+						Flags:   discordgo.MessageFlagsEphemeral,
+					},
+				})
+				return
+			}
 		} else {
-			userID = string(fmt.Sprintf("<@%s>", i.Member.User.ID))
+			userID = string(getMentionFromUserID(i.Member.User.ID))
 		}
 		msgformat += fmt.Sprintf("\nGuesserID: %s", userID)
 
 		if opt, ok := optionMap["guess"]; ok {
 			guess = int(opt.IntValue())
+			// validate that no once else has the same guess
+			invertedGuesses := invertGuessMap(guildData.Guesses)
+			if user, ok := invertedGuesses[guess]; ok {
+				if user == userID {
+					// you have already guessed this number
+					s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+						Type: discordgo.InteractionResponseChannelMessageWithSource,
+						Data: &discordgo.InteractionResponseData{
+							Content: "You have already guessed this number!",
+						},
+					})
+					return
+				}
+				// someone has already guessed this number
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: fmt.Sprintf("Sorry! You cannot guess %d as it has already been guessed by %s", guess, user),
+					},
+				})
+				return
+			}
+			// validate that the guess hasn't already been rolled
+			previousRolls := lo.Map(guildData.SpunNumbers, func(spunNumber guild.SpunNumber, _ int) int { return spunNumber.Number })
+			if lo.Contains(previousRolls, guess) {
+				// cannot guess this number as it has been previously rolled
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: fmt.Sprintf("Sorry! You cannot guess %d as it has already been rolled in this server", guess),
+					},
+				})
+				return
+			}
 			msgformat += fmt.Sprintf("\nGuess: %d", guess)
 		}
 
-		guildStore := guild.NewGuildStore(Clients.Firestore)
-		guildData, err := guildStore.CreateOrGetGuildDocument(ctx, guildID)
 		if err != nil {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -183,4 +263,17 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 			},
 		})
 	},
+}
+
+func getMentionFromUserID(userID string) string {
+	return fmt.Sprintf("<@%s>", userID)
+}
+
+func invertGuessMap(guesses map[string]int) map[int]string {
+	inverted := make(map[int]string, len(guesses))
+	for k, v := range guesses {
+		inverted[v] = k
+	}
+
+	return inverted
 }
