@@ -26,7 +26,7 @@ var wheelColors = []color.Color{
 
 // Draw a filled arc (pie slice)
 func drawArc(img *image.Paletted, cx, cy, r int, start, end float64, col color.Color) {
-	for angle := start; angle < end; angle += 0.01 {
+	for angle := start; angle < end; angle += 0.001 {
 		for rad := 0; rad < r; rad++ {
 			x := cx + int(float64(rad)*math.Cos(angle))
 			y := cy + int(float64(rad)*math.Sin(angle))

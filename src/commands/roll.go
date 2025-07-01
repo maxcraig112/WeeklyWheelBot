@@ -117,10 +117,10 @@ var SpinCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 				Content: "Now Spining!",
 			},
 		})
-		// 1. Send initial drumspin message with GIF embed
+		// 1. Send initial drumroll message with GIF embed
 		gifFileName := "spinning_wheel.gif"
 		resp, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: "Now spining a number, drumspin please! 🥁🥁🥁",
+			Content: "Now spining a number, drumroll please! 🥁🥁🥁",
 			Files: []*discordgo.File{{
 				Name:        gifFileName,
 				ContentType: "image/gif",
