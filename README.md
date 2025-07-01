@@ -64,11 +64,11 @@ In 2024, and after over 2 years of spinning, we eventually had a winner! We are 
 | Command         | Description                                                        | Options                                                                                                                        |
 |----------------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | `/guess`       | Register your guess between 1 and 1000                             | `guess` (integer, required): 1-1000, `guesser` (string, optional): Discord mention, defaults to user                        |
-| `/roll`        | Manually roll a number between 1 and 1000                          | None                                                                                                                          |
-| `/lastroll`    | Get the last number that was rolled in this server                 | None                                                                                                                          |
-| `/allrolled`   | Get a list of all numbers rolled in this server                    | None                                                                                                                          |
-| `/scheduleroll`| Schedule what date and time the number should be rolled (weekly)   | `day` (string, required): Day to start, `time` (string, required): Time to start (24HH)                                        |
-| `/uploadrolls` | Upload a txt file of all previous rolls (overrides previous rolls) | `file` (attachment, required): .txt file, one roll number per line                                                           |
+| `/spin`        | Manually spun a number between 1 and 1000                          | None                                                                                                                          |
+| `/lastspin`    | Get the last number that was spun in this server                   | None                                                                                                                          |
+| `/allspun`     | Get a list of all numbers spun in this server                      | None                                                                                                                          |
+| `/schedulespin`| Schedule what date and time the number should be spun (weekly)     | `day` (string, required): Day to start, `time` (string, required): Time to start (24HH)                                        |
+| `/uploadspins` | Upload a txt file of all previous spins (overrides previous rolls) | `file` (attachment, required): .txt file, one roll number per line                                                           |
 
 ---
 
