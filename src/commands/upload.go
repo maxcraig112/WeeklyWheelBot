@@ -11,11 +11,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var uploadPastRollsName = "uploadrolls"
+var uploadPastSpinsName = "uploadrolls"
 
 var UploadCommands = []discordgo.ApplicationCommand{
 	{
-		Name:        uploadPastRollsName,
+		Name:        uploadPastSpinsName,
 		Description: "Upload a txt file of all previous rolls (overrides previous rolls)",
 		Options: []*discordgo.ApplicationCommandOption{
 
@@ -30,7 +30,7 @@ var UploadCommands = []discordgo.ApplicationCommand{
 }
 
 var UploadCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	uploadPastRollsName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	uploadPastSpinsName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		guildID := i.GuildID
 
 		guildStore := guild.NewGuildStore(Clients.Firestore)
@@ -40,7 +40,6 @@ var UploadCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.In
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
-					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -110,7 +109,7 @@ var UploadCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.In
 			}
 		}
 
-		guildData.BulkAddRolledNumbers(ctx, rolls)
+		guildData.BulkAddSpunNumbers(ctx, rolls)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{

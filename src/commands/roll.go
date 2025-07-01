@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"main/gcp/firestore/guild"
+	"main/gif"
 	"math/rand"
 	"strings"
 	"time"
@@ -14,51 +15,47 @@ import (
 	"github.com/samber/lo"
 )
 
-var rollCommandName = "roll"
-var lastRollCommandName = "lastroll"
-var allRolledCommandName = "allrolled"
-var scheduleRollCommandName = "scheduleroll"
+var spinCommandName = "spin"
+var lastSpinCommandName = "lastspin"
+var allSpunCommandName = "allspins"
+var scheduleSpinCommandName = "scheduledspin"
 
-var RollCommands = []discordgo.ApplicationCommand{
+var SpinCommands = []discordgo.ApplicationCommand{
 	{
-		Name:        rollCommandName,
-		Description: "Manually roll a number between 1 and 1000",
+		Name:        spinCommandName,
+		Description: "Manually spin a number between 1 and 1000",
 	},
 	{
-		Name:        lastRollCommandName,
-		Description: "Get the last number that was rolled in this server",
+		Name:        lastSpinCommandName,
+		Description: "Get the last number that was spun in this server",
 	},
 	{
-		Name:        allRolledCommandName,
-		Description: "Get a list of all numbers rolled in this server",
+		Name:        allSpunCommandName,
+		Description: "Get a list of all the numbers that have been spun in this server",
 	},
 	{
-		Name:        scheduleRollCommandName,
-		Description: "Schedule what date and time the number should be rolled (frequency once a week)",
+		Name:        scheduleSpinCommandName,
+		Description: "Schedule what date and time the number should be spun (frequency once a week)",
 		Options: []*discordgo.ApplicationCommandOption{
 
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "day",
-				Description: "What Day the roll will start on",
+				Description: "What Day the spin will start on",
 				Required:    true,
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "time",
-				Description: "What Time the roll will start on (24HH Time)",
+				Description: "What Time the spin will start on (24HH Time)",
 				Required:    true,
 			},
 		},
 	},
 }
 
-var loserGifs = []string{
-	"https://i.imgur.com/ztfqRxX.gif",
-}
-
-var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	rollCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+var SpinCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+	spinCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		//get guild data
 		guildID := i.GuildID
 
@@ -74,7 +71,7 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 			return
 		}
 
-		previouslyRolledNumbers := lo.Map(guildData.RolledNumbers, func(data guild.RolledNumber, _ int) int {
+		previouslySpunNumbers := lo.Map(guildData.SpunNumbers, func(data guild.SpunNumber, _ int) int {
 			return data.Number
 		})
 
@@ -84,8 +81,8 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 		}
 
 		// Build a set for fast exclusion
-		excluded := make(map[int]struct{}, len(previouslyRolledNumbers))
-		for _, n := range previouslyRolledNumbers {
+		excluded := make(map[int]struct{}, len(previouslySpunNumbers))
+		for _, n := range previouslySpunNumbers {
 			excluded[n] = struct{}{}
 		}
 
@@ -98,16 +95,42 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 		}
 		randomNumber := validNumbers[rand.Intn(len(validNumbers))]
 
+		// Generate the spinning wheel GIF with the spined number
+		gifFile, err := gif.CreateSpinningWheelGIF("", 12, fmt.Sprintf("%d", randomNumber))
+		if err != nil {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Something went wrong generating the GIF! %s", err.Error()),
+				},
+			})
+			return
+		}
+		defer func() {
+			gifFile.Close()
+		}()
+
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Flags:   discordgo.MessageFlagsEphemeral,
-				Content: "Now Rolling!",
+				Content: "Now Spining!",
 			},
 		})
-		// 1. Send initial drumroll message
+		// 1. Send initial drumspin message with GIF embed
+		gifFileName := "spinning_wheel.gif"
 		resp, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: "Now rolling a number, drumroll please! 🥁🥁🥁",
+			Content: "Now spining a number, drumspin please! 🥁🥁🥁",
+			Files: []*discordgo.File{{
+				Name:        gifFileName,
+				ContentType: "image/gif",
+				Reader:      gifFile,
+			}},
+			Embeds: []*discordgo.MessageEmbed{{
+				Image: &discordgo.MessageEmbedImage{
+					URL: "attachment://" + gifFileName,
+				},
+			}},
 		})
 		if err != nil {
 			s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -117,7 +140,7 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 		}
 
 		// 2. Wait a couple of seconds
-		time.Sleep(5 * time.Second)
+		time.Sleep(7 * time.Second)
 
 		// 3. Reveal the number and result
 		winners := allGuesses[randomNumber]
@@ -132,23 +155,17 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 				Embeds:  &[]*discordgo.MessageEmbed{embed},
 			})
 		} else {
-			gifUrl := loserGifs[rand.Intn(len(loserGifs))]
-			embed := &discordgo.MessageEmbed{
-				Image: &discordgo.MessageEmbedImage{
-					URL: gifUrl,
-				},
-			}
+
 			s.FollowupMessageEdit(i.Interaction, resp.ID, &discordgo.WebhookEdit{
 				Content: ptr.Of(fmt.Sprintf("The number is **%d**! Better luck next time!", randomNumber)),
-				Embeds:  &[]*discordgo.MessageEmbed{embed},
 			})
 		}
 
 		// 4. Edit the original message
 
-		guildData.AddRolledNumber(ctx, randomNumber)
+		guildData.AddSpunNumber(ctx, randomNumber)
 	},
-	lastRollCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	lastSpinCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		//get guild data
 		guildID := i.GuildID
 
@@ -164,17 +181,16 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 			return
 		}
 
-		lastRoll := guildData.LastNumberRolled
+		lastSpin := guildData.LastNumberSpun
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Flags:   discordgo.MessageFlagsEphemeral,
-				Content: fmt.Sprintf("The last number rolled was %d on %s", lastRoll.Number, lastRoll.DateRolled.Format("02-01-2006")),
+				Content: fmt.Sprintf("The last number spined was %d on %s", lastSpin.Number, lastSpin.DateSpun.Format("02-01-2006")),
 			},
 		})
 
 	},
-	allRolledCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	allSpunCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		//get guild data
 		guildID := i.GuildID
 
@@ -190,25 +206,25 @@ var RollCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 			return
 		}
 
-		numbers := lo.Map(guildData.RolledNumbers, func(data guild.RolledNumber, _ int) int { return data.Number })
+		numbers := lo.Map(guildData.SpunNumbers, func(data guild.SpunNumber, _ int) int { return data.Number })
 		sort.Ints(numbers)
 		numberStrings := lo.Map(numbers, func(n int, _ int) string { return fmt.Sprintf("%d", n) })
 
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Here are a list of all the rolls that have been made in this server!",
+				Content: "Here are a list of all the spins that have been made in this server!",
 				Files: []*discordgo.File{
 					{
 						ContentType: "text/plain",
-						Name:        "rolls.txt",
+						Name:        "spins.txt",
 						Reader:      strings.NewReader(strings.Join(numberStrings, "\n")),
 					},
 				},
 			},
 		})
 	},
-	scheduleRollCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	scheduleSpinCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{

@@ -50,12 +50,12 @@ In 2024, and after over 2 years of spinning, we eventually had a winner! We are 
   - The guess of each user
   - All numbers rolled that have been rolled
   - The most recent number rolled
-- Unique gifs to indicate your success or failure when you roll
-- I use `.env` files and don't push my APIKey :)
+- Automatically generated gifs that show what number was rolled!
+- I use `.env` files and didn't push my APIKey :)
 
 <div align="center">
 
-<img src="images/README/yousuck.gif" alt="yousuck" width="250"/>
+<img src="images/README/spinning_wheel.gif" alt="spinning_wheel" width="250"/>
 
 </div>
 

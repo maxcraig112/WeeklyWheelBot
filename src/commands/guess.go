@@ -20,7 +20,7 @@ var GuessCommands = []discordgo.ApplicationCommand{
 			{
 				Type:        discordgo.ApplicationCommandOptionInteger,
 				Name:        "guess",
-				Description: "Guess between 1 and 1000",
+				Description: "Make a guess between 1 and 1000",
 				MinValue:    ptr.Of(float64(1)),
 				MaxValue:    1000,
 				Required:    true,
@@ -74,7 +74,6 @@ var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
-					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -113,7 +112,6 @@ var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
-					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -153,7 +151,6 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
-					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
@@ -165,7 +162,6 @@ var GuessMessageHandler = map[string]func(s *discordgo.Session, i *discordgo.Int
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("Something went wrong! %s", err.Error()),
-					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return

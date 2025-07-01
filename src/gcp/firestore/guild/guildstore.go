@@ -26,10 +26,10 @@ func NewGuildStore(client fs.FirestoreClientInterface) *GuildStore {
 
 func (fc *GuildStore) CreateGuildDocument(ctx context.Context, guildID string) (*GuildData, error) {
 	guildData := &GuildData{
-		GuildID:          guildID,
-		Guesses:          map[string]int{},
-		RolledNumbers:    []RolledNumber{},
-		LastNumberRolled: RolledNumber{},
+		GuildID:        guildID,
+		Guesses:        map[string]int{},
+		SpunNumbers:    []SpunNumber{},
+		LastNumberSpun: SpunNumber{},
 	}
 	_, err := fc.guilds.Doc(guildID).Set(ctx, guildData)
 	if err != nil {

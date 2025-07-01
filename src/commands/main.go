@@ -25,12 +25,12 @@ func init() {
 
 	Commands = []discordgo.ApplicationCommand{}
 	Commands = append(Commands, GuessCommands...)
-	Commands = append(Commands, RollCommands...)
+	Commands = append(Commands, SpinCommands...)
 	Commands = append(Commands, UploadCommands...)
 
 	CommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
 	maps.Copy(CommandHandler, GuessCommandHandler)
-	maps.Copy(CommandHandler, RollCommandHandler)
+	maps.Copy(CommandHandler, SpinCommandHandler)
 	maps.Copy(CommandHandler, UploadCommandHandler)
 
 	MessageHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
