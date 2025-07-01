@@ -11,31 +11,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// {
-// 	Name:        "Bulk Register",
-// 	Description: "Provide a list of users and guesses and bulk register them to the system",
-// 	Options: []*discordgo.ApplicationCommandOption{
-// 		{
-// 			Type:        discordgo.ApplicationCommandOptionAttachment,
-// 			Name:        ".txt file",
-// 			Description: "txt file with each line 'DISCORDID GUESS' ",
-// 			Required:    true,
-// 		},
-// 	},
-// },
-// {
-// 	Name:        "Upload Past Rolls",
-// 	Description: "Provide a list of all numbers which have been previously rolled so they are uploaded",
-// 	Options: []*discordgo.ApplicationCommandOption{
-// 		{
-// 			Type:        discordgo.ApplicationCommandOptionAttachment,
-// 			Name:        ".txt file",
-// 			Description: "txt file with each line being a pass roll",
-// 			Required:    true,
-// 		},
-// 	},
-// },
-
 var uploadPastRollsName = "uploadrolls"
 
 var UploadCommands = []discordgo.ApplicationCommand{
