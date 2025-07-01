@@ -23,12 +23,13 @@ func init() {
 		log.Fatalf("Failed to initialize clients: %v", err)
 	}
 
-	Commands = []discordgo.ApplicationCommand{
-		GuessCommand,
-	}
+	Commands = []discordgo.ApplicationCommand{}
+	Commands = append(Commands, GuessCommands...)
+	Commands = append(Commands, RollCommands...)
 
 	CommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
 	maps.Copy(CommandHandler, GuessCommandHandler)
+	maps.Copy(CommandHandler, RollCommandHandler)
 
 	MessageHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){}
 	maps.Copy(MessageHandler, GuessMessageHandler)

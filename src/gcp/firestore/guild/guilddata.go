@@ -36,3 +36,24 @@ func (g *GuildData) SetGuess(ctx context.Context, userID string, guess int) erro
 	})
 	return err
 }
+
+func (g *GuildData) AddRolledNumber(ctx context.Context, number int) error {
+	rolled := RolledNumber{
+		Number:     number,
+		DateRolled: time.Now(),
+	}
+	g.RolledNumbers = append(g.RolledNumbers, rolled)
+	g.LastNumberRolled = rolled
+
+	_, err := g.CollectionRef.Doc(g.GuildID).Update(ctx, []firestore.Update{
+		{
+			Path:  "rolledNumbers",
+			Value: g.RolledNumbers,
+		},
+		{
+			Path:  "latsNumberRolled",
+			Value: g.LastNumberRolled,
+		},
+	})
+	return err
+}

@@ -10,31 +10,33 @@ import (
 	"github.com/gotidy/ptr"
 )
 
-var GuessCommandName = "guess"
-var GuessCommand = discordgo.ApplicationCommand{
-	Name:        GuessCommandName,
-	Description: "Register your guess between 1 and 1000",
-	Options: []*discordgo.ApplicationCommandOption{
+var guessCommandName = "guess"
+var GuessCommands = []discordgo.ApplicationCommand{
+	{
+		Name:        guessCommandName,
+		Description: "Register your guess between 1 and 1000",
+		Options: []*discordgo.ApplicationCommandOption{
 
-		{
-			Type:        discordgo.ApplicationCommandOptionInteger,
-			Name:        "guess",
-			Description: "Guess between 1 and 1000",
-			MinValue:    ptr.Of(float64(1)),
-			MaxValue:    1000,
-			Required:    true,
-		},
-		{
-			Type:        discordgo.ApplicationCommandOptionString,
-			Name:        "guesser",
-			Description: "Who is making the guess (should be a discord mention), by default it is the user making the command",
-			Required:    false,
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "guess",
+				Description: "Guess between 1 and 1000",
+				MinValue:    ptr.Of(float64(1)),
+				MaxValue:    1000,
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "guesser",
+				Description: "Who is making the guess (should be a discord mention), by default it is the user making the command",
+				Required:    false,
+			},
 		},
 	},
 }
 
 var GuessCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	GuessCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	guessCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		guildID := i.GuildID
 		// Access options in the order provided by the user.
 		options := i.ApplicationCommandData().Options

@@ -36,33 +36,6 @@ func init() {
 var (
 
 // {
-// 	Name:        "lastRolled",
-// 	Description: "Get the last number that was rolled in this server",
-// },
-// {
-// 	Name:        "All Numbers Rolled",
-// 	Description: "Get a list of all numbers rolled in this server",
-// },
-// {
-// 	Name:        "Schedule Roll",
-// 	Description: "Schedule what date and time the number should be rolled (frequency once a week)",
-// 	Options: []*discordgo.ApplicationCommandOption{
-
-// 		{
-// 			Type:        discordgo.ApplicationCommandOptionString,
-// 			Name:        "Start Day",
-// 			Description: "What Day the roll will start on",
-// 			Required:    true,
-// 		},
-// 		{
-// 			Type:        discordgo.ApplicationCommandOptionString,
-// 			Name:        "Start Time (24 Hour Time)",
-// 			Description: "What Time the roll will start on",
-// 			Required:    true,
-// 		},
-// 	},
-// },
-// {
 // 	Name:        "Bulk Register",
 // 	Description: "Provide a list of users and guesses and bulk register them to the system",
 // 	Options: []*discordgo.ApplicationCommandOption{
@@ -85,10 +58,6 @@ var (
 // 			Required:    true,
 // 		},
 // 	},
-// },
-// {
-// 	Name:        "Roll",
-// 	Description: "Manually roll a number between 1 and 1000",
 // },
 
 )
