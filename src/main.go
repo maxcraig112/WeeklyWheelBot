@@ -72,8 +72,6 @@ func main() {
 		registeredCommands[i] = cmd
 	}
 
-	// this will make sure to close the clients when the application ends
-
 	defer s.Close()
 
 	stop := make(chan os.Signal, 1)
