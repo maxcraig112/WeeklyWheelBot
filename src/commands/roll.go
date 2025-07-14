@@ -56,6 +56,13 @@ var SpinCommands = []discordgo.ApplicationCommand{
 
 var SpinCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 	spinCommandName: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   discordgo.MessageFlagsEphemeral,
+				Content: "Now Spining!",
+			},
+		})
 		//get guild data
 		guildID := i.GuildID
 
@@ -110,13 +117,6 @@ var SpinCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 			gifFile.Close()
 		}()
 
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Flags:   discordgo.MessageFlagsEphemeral,
-				Content: "Now Spining!",
-			},
-		})
 		// 1. Send initial drumroll message with GIF embed
 		gifFileName := "spinning_wheel.gif"
 		resp, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
