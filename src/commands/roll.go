@@ -185,7 +185,7 @@ var SpinCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.Inte
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("The last number spined was %d on %s", lastSpin.Number, lastSpin.DateSpun.Format("02-01-2006")),
+				Content: fmt.Sprintf("The last number spun was %d on %s", lastSpin.Number, lastSpin.DateSpun.Format("02-01-2006")),
 			},
 		})
 
