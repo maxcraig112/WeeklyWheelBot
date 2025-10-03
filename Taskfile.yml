@@ -1,0 +1,12 @@
+version: '3'
+
+env:
+  CGO_LDFLAGS: "-lm"
+
+tasks:
+  run:
+    desc: Run Discord bot
+    dir: src
+    interactive: true
+    cmds:
+      - go run main.go
